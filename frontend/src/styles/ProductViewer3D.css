@@ -1,0 +1,101 @@
+.product-viewer-3d {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+  
+  .controls-panel {
+    background-color: white;
+    padding: 0.75rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 16rem;
+    text-align: center;
+  }
+  
+  .dark .controls-panel {
+    background-color: var(--color-card);
+    color: var(--color-foreground);
+  }
+  
+  .color-display {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    margin-bottom: var(--spacing-2);
+  }
+  
+  .zoom-control {
+    margin-bottom: var(--spacing-2);
+  }
+  
+  .zoom-label {
+    font-size: var(--font-size-xs);
+    margin-bottom: var(--spacing-1);
+  }
+  
+  .zoom-slider {
+    width: 100%;
+    height: 0.25rem;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--color-border);
+    border-radius: var(--radius-full);
+    outline: none;
+  }
+  
+  .zoom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+  }
+  
+  .zoom-slider::-moz-range-thumb {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: var(--color-primary);
+    cursor: pointer;
+    border: none;
+  }
+  
+  .control-hint {
+    font-size: var(--font-size-xs);
+    color: var(--color-muted);
+  }
+  
+  .view-mode-controls {
+    position: absolute;
+    bottom: var(--spacing-4);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .view-mode-tabs {
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(4px);
+    border-radius: var(--radius-full);
+    padding: var(--spacing-1);
+  }
+  
+  .dark .view-mode-tabs {
+    background-color: rgba(42, 42, 42, 0.8);
+  }
+  
+  .view-mode-tab {
+    padding: 0.5rem 1rem;
+    font-size: var(--font-size-xs);
+    border-radius: var(--radius-full);
+    transition: all var(--transition);
+  }
+  
+  .view-mode-tab.active {
+    background-color: var(--color-primary);
+    color: white;
+  }
+  
+  
