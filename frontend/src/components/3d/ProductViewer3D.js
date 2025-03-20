@@ -1,14 +1,13 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 import { Canvas, useFrame } from "@react-three/fiber"
-import { useGLTF, Environment, OrbitControls, Html } from "@react-three/drei"
+import { Environment, OrbitControls, Html } from "@react-three/drei"
 import "../../styles/ProductViewer3D.css"
 
-// Main 3D viewer component
-function ProductViewer3D({ product, color }) {
-  const [zoom, setZoom] = useState(1.5)
-  const [viewMode, setViewMode] = useState("rotate")
+// Simple model component instead of loading external GLB
+function Model({ color, scale = 1, position = [0, 0, 0], rotation = [0, 0, 0] }) {
+  const group = useRef()
 
   // Convert color name to hex
   function getColorHex(colorName) {
@@ -38,63 +37,74 @@ function ProductViewer3D({ product, color }) {
     return colorMap[colorName] || "#cccccc"
   }
 
-  // Mannequin model with outfit
-  function Model({ color, scale = 1, position = [0, 0, 0], rotation = [0, 0, 0] }) {
-    const group = useRef()
-    const { scene } = useGLTF("/assets/3d/duck.glb")
+  const colorHex = getColorHex(color)
 
-    // Apply color to the model
-    useEffect(() => {
-      scene.traverse((child) => {
-        if (child.isMesh) {
-          // This is a simplified approach - in a real app, you'd have a more sophisticated
-          // material system to apply colors to specific parts of the model
-          child.material.color.set(getColorHex(color))
-        }
-      })
-    }, [scene, color])
+  // Slow rotation
+  useFrame(() => {
+    if (group.current) {
+      group.current.rotation.y += 0.003
+    }
+  })
 
-    // Slow rotation
-    useFrame(() => {
-      if (group.current) {
-        group.current.rotation.y += 0.003
-      }
-    })
+  return (
+    <group ref={group} position={position} rotation={rotation} scale={[scale, scale, scale]}>
+      <mesh>
+        <boxGeometry args={[1, 2, 1]} />
+        <meshStandardMaterial color={colorHex} />
+      </mesh>
+    </group>
+  )
+}
 
-    return (
-      <group ref={group} position={position} rotation={rotation} scale={[scale, scale, scale]}>
-        <primitive object={scene} />
-      </group>
-    )
+// Controls panel
+function ControlsPanel({ color, zoom, setZoom }) {
+  return (
+    <Html position={[0, -2, 0]} transform>
+      <div className="controls-panel">
+        <p className="color-display">Current Color: {color}</p>
+        <div className="zoom-control">
+          <p className="zoom-label">Zoom</p>
+          <input
+            type="range"
+            min="1"
+            max="3"
+            step="0.1"
+            value={zoom}
+            onChange={(e) => setZoom(Number.parseFloat(e.target.value))}
+            className="zoom-slider"
+          />
+        </div>
+        <p className="control-hint">Drag to rotate • Pinch to zoom</p>
+      </div>
+    </Html>
+  )
+}
+
+// Main 3D viewer component
+function ProductViewer3D({ product, color }) {
+  const [zoom, setZoom] = useState(1.5)
+  const [viewMode, setViewMode] = useState("rotate")
+  const [error, setError] = useState(null)
+
+  // Error handling
+  const handleError = (err) => {
+    console.error("Error in ProductViewer3D:", err)
+    setError(err)
   }
 
-  // Controls panel
-  function ControlsPanel({ color, zoom, setZoom }) {
+  if (error) {
     return (
-      <Html position={[0, -2, 0]} transform>
-        <div className="controls-panel">
-          <p className="color-display">Current Color: {color}</p>
-          <div className="zoom-control">
-            <p className="zoom-label">Zoom</p>
-            <input
-              type="range"
-              min="1"
-              max="3"
-              step="0.1"
-              value={zoom}
-              onChange={(e) => setZoom(Number.parseFloat(e.target.value))}
-              className="zoom-slider"
-            />
-          </div>
-          <p className="control-hint">Drag to rotate • Pinch to zoom</p>
+      <div className="product-viewer-fallback">
+        <div className="fallback-message">
+          <p>3D view is not available. Please try the image view instead.</p>
         </div>
-      </Html>
+      </div>
     )
   }
 
   return (
     <div className="product-viewer-3d">
-      <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
+      <Canvas camera={{ position: [0, 0, 5], fov: 50 }} onError={handleError}>
         <ambientLight intensity={0.5} />
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
         <Model color={color} scale={zoom} />

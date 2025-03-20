@@ -4,17 +4,15 @@ import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
 import { useTheme } from "../../contexts/ThemeContext"
 import { useAuth } from "../../contexts/AuthContext"
+import { useLanguage } from "../../contexts/LanguageContext"
 import "../../styles/Navbar.css"
-
-// Logo URL from external source
-const LOGO_URL = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-gicURmpqcSgBsW1aaJkRQRXMnPnv3c.png"
 
 function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
-  const { user, cartCount, wishlistCount } = useAuth()
-  const [language, setLanguage] = useState("en")
+  const { user, cartCount, wishlistCount, logout } = useAuth()
+  const { language, setLanguage, t } = useLanguage()
   const [activeDropdown, setActiveDropdown] = useState(null)
   const dropdownRef = useRef(null)
 
@@ -22,6 +20,7 @@ function Navbar() {
   const languages = [
     { code: "en", name: "English" },
     { code: "ur", name: "Urdu" },
+    { code: "ar", name: "Arabic" },
   ]
 
   // Categories for dropdown
@@ -58,19 +57,24 @@ function Navbar() {
     setActiveDropdown(activeDropdown === dropdown ? null : dropdown)
   }
 
+  const handleLogout = () => {
+    logout()
+    window.location.href = "/login"
+  }
+
   return (
     <header className={`navbar ${theme === "dark" ? "dark" : "light"}`}>
       <div className="navbar-container">
         <div className="navbar-content">
           {/* Logo */}
           <Link to="/home" className="navbar-logo">
-            <img src={LOGO_URL || "/placeholder.svg"} alt="Khumaymi Logo" className="navbar-logo-image" />
+            <span className="navbar-logo-text">Elegance</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="navbar-nav">
             <Link to="/home" className="nav-link">
-              Home
+              {t("home")}
             </Link>
 
             {/* Products Dropdown */}
@@ -79,14 +83,14 @@ function Navbar() {
                 className={`nav-link dropdown-trigger ${activeDropdown === "products" ? "active" : ""}`}
                 onClick={() => toggleDropdown("products")}
               >
-                Products <i className="icon-chevron-down"></i>
+                {t("products")} <i className="icon-chevron-down"></i>
               </button>
 
               {activeDropdown === "products" && (
                 <div className="dropdown-menu">
                   <div className="dropdown-grid">
                     <div className="dropdown-column">
-                      <h3 className="dropdown-heading">Categories</h3>
+                      <h3 className="dropdown-heading">{t("categories")}</h3>
                       {categories.map((category) => (
                         <Link
                           key={category.id}
@@ -99,13 +103,13 @@ function Navbar() {
                       ))}
                     </div>
                     <div className="dropdown-column">
-                      <h3 className="dropdown-heading">Collections</h3>
+                      <h3 className="dropdown-heading">{t("collections")}</h3>
                       <Link
                         to="/collections/new-arrivals"
                         className="dropdown-item"
                         onClick={() => setActiveDropdown(null)}
                       >
-                        New Arrivals
+                        {t("newArrivals")}
                       </Link>
                       <Link
                         to="/collections/bestsellers"
@@ -124,10 +128,10 @@ function Navbar() {
             </div>
 
             <Link to="/our-story" className="nav-link">
-              Our Story
+              {t("ourStory")}
             </Link>
             <Link to="/contact" className="nav-link">
-              Contact Us
+              {t("contact")}
             </Link>
           </nav>
 
@@ -184,25 +188,19 @@ function Navbar() {
                 </button>
                 <div className="dropdown-content">
                   <Link to="/account" className="dropdown-item">
-                    My Account
+                    {t("myAccount")}
                   </Link>
                   <Link to="/orders" className="dropdown-item">
-                    My Orders
+                    {t("myOrders")}
                   </Link>
-                  <button
-                    className="dropdown-item"
-                    onClick={() => {
-                      // Call logout function from auth context
-                      window.location.href = "/login"
-                    }}
-                  >
-                    Logout
+                  <button className="dropdown-item" onClick={handleLogout}>
+                    {t("logout")}
                   </button>
                 </div>
               </div>
             ) : (
               <Link to="/login">
-                <button className="login-button">Login</button>
+                <button className="login-button">{t("login")}</button>
               </Link>
             )}
 
@@ -219,7 +217,7 @@ function Navbar() {
         <div className={`mobile-menu ${theme === "dark" ? "dark" : "light"}`}>
           <div className="mobile-menu-container">
             <Link to="/home" className="mobile-menu-link" onClick={() => setIsMenuOpen(false)}>
-              Home
+              {t("home")}
             </Link>
 
             <div className="mobile-accordion">
@@ -227,13 +225,13 @@ function Navbar() {
                 className={`mobile-accordion-header ${activeDropdown === "mobile-products" ? "active" : ""}`}
                 onClick={() => toggleDropdown("mobile-products")}
               >
-                Products
+                {t("products")}
                 <i className={`icon-chevron-${activeDropdown === "mobile-products" ? "up" : "down"}`}></i>
               </button>
 
               {activeDropdown === "mobile-products" && (
                 <div className="mobile-accordion-content">
-                  <h3 className="mobile-menu-subheading">Categories</h3>
+                  <h3 className="mobile-menu-subheading">{t("categories")}</h3>
                   {categories.map((category) => (
                     <Link
                       key={category.id}
@@ -245,13 +243,13 @@ function Navbar() {
                     </Link>
                   ))}
 
-                  <h3 className="mobile-menu-subheading">Collections</h3>
+                  <h3 className="mobile-menu-subheading">{t("collections")}</h3>
                   <Link
                     to="/collections/new-arrivals"
                     className="mobile-menu-sublink"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    New Arrivals
+                    {t("newArrivals")}
                   </Link>
                   <Link
                     to="/collections/bestsellers"
@@ -268,15 +266,15 @@ function Navbar() {
             </div>
 
             <Link to="/our-story" className="mobile-menu-link" onClick={() => setIsMenuOpen(false)}>
-              Our Story
+              {t("ourStory")}
             </Link>
             <Link to="/contact" className="mobile-menu-link" onClick={() => setIsMenuOpen(false)}>
-              Contact Us
+              {t("contact")}
             </Link>
 
             {!user && (
               <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                <button className="mobile-login-button">Login</button>
+                <button className="mobile-login-button">{t("login")}</button>
               </Link>
             )}
           </div>

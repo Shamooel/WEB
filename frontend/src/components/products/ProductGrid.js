@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
 import { useToast } from "../../hooks/useToast"
+import { getImageUrl } from "../../utils/imageUtils"
 import "../../styles/ProductGrid.css"
 
 function ProductGrid({ products }) {
@@ -82,7 +83,11 @@ function ProductGrid({ products }) {
         >
           <div className="product-image-container">
             <img
-              src={hoveredProduct === product.id && product.hoverImage ? product.hoverImage : product.image}
+              src={getImageUrl(
+                hoveredProduct === product.id && product.hoverImage ? product.hoverImage : product.image,
+                450,
+                600,
+              )}
               alt={product.name}
               className="product-image"
             />

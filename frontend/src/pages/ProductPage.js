@@ -8,6 +8,8 @@ import ProductViewer3D from "../components/3d/ProductViewer3D"
 import { useAuth } from "../contexts/AuthContext"
 import { useToast } from "../hooks/useToast"
 import { fetchProductById } from "../services/api"
+import { getImageUrl } from "../utils/imageUtils"
+import LoadingScreen from "../components/common/LoadingScreen"
 import "../styles/ProductPage.css"
 
 function ProductPage() {
@@ -85,16 +87,7 @@ function ProductPage() {
   }
 
   if (loading) {
-    return (
-      <div className="product-page">
-        <Navbar />
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading product details...</p>
-        </div>
-        <Footer />
-      </div>
-    )
+    return <LoadingScreen message="Loading product details..." />
   }
 
   if (!product) {
@@ -128,7 +121,11 @@ function ProductPage() {
                 </div>
               ) : (
                 <div className="product-image-wrapper">
-                  <img src={product.image || "/placeholder.svg"} alt={product.name} className="product-detail-image" />
+                  <img
+                    src={getImageUrl(product.image, 600, 800) || "/placeholder.svg"}
+                    alt={product.name}
+                    className="product-detail-image"
+                  />
                 </div>
               )}
             </div>

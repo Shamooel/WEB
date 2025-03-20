@@ -104,6 +104,34 @@ img {
   height: auto;
 }
 
+/* RTL Support */
+html[dir="rtl"] .icon-chevron-down::before {
+  content: "▼";
+}
+
+html[dir="rtl"] .icon-chevron-up::before {
+  content: "▲";
+}
+
+html[dir="rtl"] .dropdown-menu {
+  left: auto;
+  right: 0;
+}
+
+html[dir="rtl"] .dropdown-content {
+  left: auto;
+  right: 0;
+}
+
+/* Language specific styles */
+.lang-ar {
+  font-family: "Amiri", "Poppins", sans-serif;
+}
+
+.lang-ur {
+  font-family: "Noto Nastaliq Urdu", "Poppins", sans-serif;
+}
+
 /* Utility classes */
 .container {
   width: 100%;
@@ -154,5 +182,86 @@ img {
 .dark .loading-spinner {
   border-color: rgba(255, 255, 255, 0.1);
   border-left-color: var(--color-primary);
+}
+
+/* Global loading container */
+.loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 9999;
+  gap: var(--spacing-4);
+}
+
+.dark .loading-container {
+  background-color: rgba(26, 10, 10, 0.8);
+}
+
+.loading-container p {
+  font-size: var(--font-size-lg);
+  font-weight: 500;
+  color: var(--color-foreground);
+}
+
+.dark .loading-container p {
+  color: var(--color-foreground);
+}
+
+/* Error container */
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-8);
+  text-align: center;
+}
+
+.error-container p {
+  color: var(--color-error);
+  margin-bottom: var(--spacing-4);
+}
+
+.retry-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--color-primary);
+  color: white;
+  border-radius: var(--radius);
+  font-weight: 500;
+  transition: all var(--transition);
+}
+
+.retry-button:hover {
+  background-color: var(--color-primary-dark);
+}
+
+/* Page transitions */
+.page-transition-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 300ms, transform 300ms;
 }
 

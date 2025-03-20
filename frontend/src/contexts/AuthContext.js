@@ -1,7 +1,6 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect } from "react"
-import { loginUser, signupUser, getCartItems, getWishlistItems } from "../services/api"
 
 // Create the Auth context
 const AuthContext = createContext()
@@ -22,20 +21,19 @@ export function AuthProvider({ children }) {
         setUser(userData)
 
         try {
-          // Get cart and wishlist counts from API
-          const cartData = await getCartItems()
-          const wishlistData = await getWishlistItems()
-
-          setCartCount(cartData.length || 0)
-          setWishlistCount(wishlistData.length || 0)
-        } catch (error) {
-          console.error("Error fetching user data:", error)
-          // Fallback to localStorage if API fails
+          // Get cart and wishlist from localStorage
           const cart = JSON.parse(localStorage.getItem("cart") || "[]")
           const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]")
 
           setCartCount(cart.length)
           setWishlistCount(wishlist.length)
+        } catch (error) {
+          console.error("Error fetching user data:", error)
+          // Reset if there's an error
+          localStorage.setItem("cart", JSON.stringify([]))
+          localStorage.setItem("wishlist", JSON.stringify([]))
+          setCartCount(0)
+          setWishlistCount(0)
         }
       }
 
@@ -48,8 +46,16 @@ export function AuthProvider({ children }) {
   // Login function
   const login = async (email, password) => {
     try {
-      // Call the API service
-      const userData = await loginUser(email, password)
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Create mock user data
+      const userData = {
+        id: "1",
+        name: "Demo User",
+        email: email,
+        token: "demo-token-" + Math.random().toString(36).substring(2, 15),
+      }
 
       // Save user to localStorage
       localStorage.setItem("user", JSON.stringify(userData))
@@ -67,33 +73,32 @@ export function AuthProvider({ children }) {
       setUser(userData)
 
       // Get cart and wishlist counts
-      try {
-        const cartData = await getCartItems()
-        const wishlistData = await getWishlistItems()
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]")
+      const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]")
 
-        setCartCount(cartData.length || 0)
-        setWishlistCount(wishlistData.length || 0)
-      } catch (error) {
-        console.error("Error fetching user data:", error)
-        // Fallback to localStorage
-        const cart = JSON.parse(localStorage.getItem("cart") || "[]")
-        const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]")
-
-        setCartCount(cart.length)
-        setWishlistCount(wishlist.length)
-      }
+      setCartCount(cart.length)
+      setWishlistCount(wishlist.length)
 
       return userData
     } catch (error) {
-      throw error
+      console.error("Login error:", error)
+      throw new Error("Invalid credentials. Please try again.")
     }
   }
 
   // Signup function
   const signup = async (name, email, password) => {
     try {
-      // Call the API service
-      const userData = await signupUser(name, email, password)
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      // Create mock user data
+      const userData = {
+        id: "1",
+        name: name,
+        email: email,
+        token: "demo-token-" + Math.random().toString(36).substring(2, 15),
+      }
 
       // Save user to localStorage
       localStorage.setItem("user", JSON.stringify(userData))
@@ -109,7 +114,8 @@ export function AuthProvider({ children }) {
 
       return userData
     } catch (error) {
-      throw error
+      console.error("Signup error:", error)
+      throw new Error("Failed to create account. Please try again.")
     }
   }
 
@@ -122,27 +128,27 @@ export function AuthProvider({ children }) {
   }
 
   // Add to cart function
-  const addToCart = async (productId, quantity = 1) => {
+  const addToCart = async (productId) => {
     try {
-      // Call the API
-      await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:5000/api"}/cart`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({ productId, quantity }),
-      })
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
-      // Update cart count
-      setCartCount((prev) => prev + 1)
-
-      // Update localStorage for fallback
+      // Get current cart
       const cart = JSON.parse(localStorage.getItem("cart") || "[]")
+
+      // Check if product is already in cart
       if (!cart.includes(productId)) {
+        // Add product to cart
         cart.push(productId)
+
+        // Save updated cart
         localStorage.setItem("cart", JSON.stringify(cart))
+
+        // Update cart count
+        setCartCount(cart.length)
       }
+
+      return true
     } catch (error) {
       console.error("Error adding to cart:", error)
       throw error
@@ -152,25 +158,25 @@ export function AuthProvider({ children }) {
   // Add to wishlist function
   const addToWishlist = async (productId) => {
     try {
-      // Call the API
-      await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:5000/api"}/wishlist`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({ productId }),
-      })
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
-      // Update wishlist count
-      setWishlistCount((prev) => prev + 1)
-
-      // Update localStorage for fallback
+      // Get current wishlist
       const wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]")
+
+      // Check if product is already in wishlist
       if (!wishlist.includes(productId)) {
+        // Add product to wishlist
         wishlist.push(productId)
+
+        // Save updated wishlist
         localStorage.setItem("wishlist", JSON.stringify(wishlist))
+
+        // Update wishlist count
+        setWishlistCount(wishlist.length)
       }
+
+      return true
     } catch (error) {
       console.error("Error adding to wishlist:", error)
       throw error
@@ -192,7 +198,7 @@ export function AuthProvider({ children }) {
         isLoading,
       }}
     >
-      {!isLoading && children}
+      {children}
     </AuthContext.Provider>
   )
 }
