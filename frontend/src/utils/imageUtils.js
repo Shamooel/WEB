@@ -1,39 +1,55 @@
 /**
- * Generate a placeholder image URL
- * @param {number} width - Width of the image
- * @param {number} height - Height of the image
- * @param {string} text - Optional text to display in the image
- * @returns {string} - Data URL for the SVG image
+ * Gets the image URL with optional width and height parameters
+ * @param {string} url - The original image URL
+ * @param {number} width - Optional width for the image
+ * @param {number} height - Optional height for the image
+ * @returns {string} - The formatted image URL
  */
-export const generatePlaceholderImage = (width = 300, height = 300, text = "") => {
-    // Create SVG content
-    const displayText = text || `${width}x${height}`
-    const svg = `
-      <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100%" height="100%" fill="#f0f0f0"/>
-        <text x="50%" y="50%" font-family="Arial" font-size="20" fill="#999" text-anchor="middle" dominant-baseline="middle">
-          ${displayText}
-        </text>
-      </svg>
-    `
-  
-    // Convert to data URL
-    const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
-    return dataUrl
+export const getImageUrl = (url, width, height) => {
+  if (!url) {
+    // Return placeholder if no URL provided
+    return getPlaceholderImage(width, height)
   }
-  
-  /**
-   * Get image URL with fallback to placeholder
-   * @param {string} imageUrl - Original image URL
-   * @param {number} width - Width for placeholder
-   * @param {number} height - Height for placeholder
-   * @returns {string} - Image URL or placeholder
-   */
-  export const getImageUrl = (imageUrl, width = 300, height = 300) => {
-    if (!imageUrl || imageUrl.includes("placeholder.svg")) {
-      return generatePlaceholderImage(width, height)
+
+  // If it's already a placeholder, ensure it has the right dimensions
+  if (url.includes("/placeholder.svg")) {
+    return getPlaceholderImage(width, height)
+  }
+
+  // If it's a relative URL (starts with /)
+  if (url.startsWith("/") && !url.startsWith("//")) {
+    // If dimensions are provided and it doesn't already have query params
+    if (width && height && !url.includes("?")) {
+      return `${url}?width=${width}&height=${height}`
     }
-    return imageUrl
+    return url
   }
-  
-  
+
+  // For absolute URLs, return as is
+  return url
+}
+
+/**
+ * Gets a placeholder image with specified dimensions
+ * @param {number} width - Width for the placeholder
+ * @param {number} height - Height for the placeholder
+ * @returns {string} - The placeholder image URL
+ */
+export const getPlaceholderImage = (width = 300, height = 300) => {
+  return `/placeholder.svg?height=${height}&width=${width}`
+}
+
+/**
+ * Checks if an image exists at the given URL
+ * @param {string} url - The image URL to check
+ * @returns {Promise<boolean>} - Promise resolving to true if image exists
+ */
+export const checkImageExists = async (url) => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => resolve(true)
+    img.onerror = () => resolve(false)
+    img.src = url
+  })
+}
+

@@ -1,0 +1,179 @@
+.welcome-scene {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.welcome-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.welcome-scene canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.welcome-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.welcome-overlay h1 {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  color: #f8c9d4;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.welcome-overlay p {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.enter-button-container {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.enter-button-2d {
+  background-color: #f8c9d4;
+  color: #16213e;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  opacity: 0.9;
+}
+
+.enter-button-2d:hover {
+  background-color: #ff9eb1;
+  transform: scale(1.05);
+  opacity: 1;
+}
+
+/* Fallback content when 3D doesn't work */
+.fallback-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+.fallback-welcome h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #f8c9d4;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.fallback-welcome p {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.fallback-welcome .enter-button {
+  background-color: #f8c9d4;
+  color: #16213e;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 30px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.fallback-welcome .enter-button:hover {
+  background-color: #ff9eb1;
+  transform: scale(1.05);
+}
+
+/* Rain effect overlay */
+.rain-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.2) 100%);
+  pointer-events: none;
+  z-index: 5;
+  animation: rainAnimation 2s infinite linear;
+}
+
+@keyframes rainAnimation {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 100px;
+  }
+}
+
+/* Water ripple effect at the bottom */
+.water-effect {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 20%;
+  background: linear-gradient(
+    to bottom,
+    rgba(74, 143, 231, 0) 0%,
+    rgba(74, 143, 231, 0.3) 50%,
+    rgba(74, 143, 231, 0.5) 100%
+  );
+  pointer-events: none;
+  z-index: 4;
+  animation: waterRipple 3s infinite ease-in-out;
+}
+
+@keyframes waterRipple {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+/* RTL support */
+[dir="rtl"] .enter-button-container {
+  transform: translateX(50%);
+}
+
+[dir="rtl"] .welcome-overlay {
+  transform: translate(50%, -50%);
+}
+

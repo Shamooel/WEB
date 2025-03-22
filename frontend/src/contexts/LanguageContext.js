@@ -1,316 +1,261 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useState, useContext, useEffect } from "react"
 
-// Create the language context
-const LanguageContext = createContext()
-
-// Translations for different languages
-const translationsData = {
+// Define translations
+const translations = {
   en: {
     // Navigation
     home: "Home",
-    products: "Products",
-    collections: "Collections",
-    newArrivals: "New Arrivals",
+    categories: "Categories",
     ourStory: "Our Story",
-    contact: "Contact Us",
+    contactUs: "Contact Us",
     login: "Login",
     signup: "Sign Up",
-    myAccount: "My Account",
-    myOrders: "My Orders",
     logout: "Logout",
-    categories: "Categories",
+    profile: "Profile",
+    orders: "Orders",
+    cart: "Cart",
+    wishlist: "Wishlist",
+    searchPlaceholder: "Search...",
 
-    // Product related
+    // Categories
+    formalWear: "Formal Wear",
+    casualWear: "Casual Wear",
+    bridalCollection: "Bridal Collection",
+    accessories: "Accessories",
+    viewAllCategories: "View All Categories",
+
+    // Product
     addToCart: "Add to Cart",
     addToWishlist: "Add to Wishlist",
-    viewDetails: "View Details",
-    price: "Price",
-    quantity: "Quantity",
     color: "Color",
     size: "Size",
+    quantity: "Quantity",
     details: "Details",
     shipping: "Shipping",
     returns: "Returns",
 
-    // Home page
-    discoverCollection: "Discover Our Collection",
-    exploreSelection:
-      "Explore our curated selection of premium Pakistani fashion, designed for the modern individual who values tradition and elegance.",
-
-    // Welcome page
-    luxuryFashion: "Luxury Pakistani Fashion",
-    experienceElegance: "Experience traditional elegance in a new dimension",
-    exploreCollection: "Explore Collection",
+    // Authentication
+    welcomeBack: "Welcome Back",
+    enterCredentials: "Please enter your credentials to continue",
+    email: "Email",
+    password: "Password",
+    forgotPassword: "Forgot Password?",
+    createAccount: "Create Account",
+    joinUs: "Join us to explore the finest Pakistani fashion",
+    fullName: "Full Name",
+    confirmPassword: "Confirm Password",
+    loading: "Loading",
 
     // Footer
+    quickLinks: "Quick Links",
+    customerService: "Customer Service",
+    shippingPolicy: "Shipping Policy",
+    returnPolicy: "Return Policy",
+    privacyPolicy: "Privacy Policy",
+    termsConditions: "Terms & Conditions",
+    faq: "FAQ",
+    stayConnected: "Stay Connected",
     newsletter: "Newsletter",
-    subscribeUpdates: "Subscribe to receive updates on our latest collections and exclusive offers.",
+    subscribeToNewsletter: "Subscribe to our newsletter for updates",
+    emailAddress: "Email Address",
     subscribe: "Subscribe",
     allRightsReserved: "All rights reserved.",
 
-    // Auth
-    welcomeBack: "Welcome Back",
-    enterCredentials: "Enter your credentials to access your account",
-    email: "Email",
-    password: "Password",
-    forgotPassword: "Forgot password?",
-    createAccount: "Create Account",
-    joinUs: "Join us to explore exclusive Pakistani fashion",
-    fullName: "Full Name",
-    confirmPassword: "Confirm Password",
-
-    // Cart & Wishlist
-    yourCart: "Your Shopping Cart",
-    yourWishlist: "Your Wishlist",
-    emptyCart: "Your cart is empty",
-    emptyWishlist: "Your wishlist is empty",
-    continueShopping: "Continue Shopping",
-    product: "Product",
-    total: "Total",
-    subtotal: "Subtotal",
-    orderSummary: "Order Summary",
-    proceedToCheckout: "Proceed to Checkout",
-
-    // Contact
-    contactUs: "Contact Us",
-    contactMessage:
-      "We'd love to hear from you. Please fill out the form below or reach out to us using the contact information.",
-    yourName: "Your Name",
-    emailAddress: "Email Address",
-    subject: "Subject",
-    yourMessage: "Your Message",
-    sendMessage: "Send Message",
-    getInTouch: "Get in Touch",
-    ourLocation: "Our Location",
-    phoneNumber: "Phone Number",
-    workingHours: "Working Hours",
-    followUs: "Follow Us",
-
     // Misc
-    loading: "Loading",
-    error: "Error",
-    pageNotFound: "Page Not Found",
-    pageNotFoundMessage:
-      "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.",
-    returnToHome: "Return to Home",
+    lightMode: "Light Mode",
+    darkMode: "Dark Mode",
+
+    // Welcome Scene
+    welcomeTitle: "Pakistani Fashion",
+    welcomeSubtitle: "Discover Elegance",
+    enterStore: "Enter Store",
   },
   ur: {
     // Navigation
     home: "ہوم",
-    products: "پروڈکٹس",
-    collections: "کلیکشنز",
-    newArrivals: "نئی آمد",
+    categories: "زمرہ جات",
     ourStory: "ہماری کہانی",
-    contact: "رابطہ کریں",
+    contactUs: "رابطہ کریں",
     login: "لاگ ان",
     signup: "سائن اپ",
-    myAccount: "میرا اکاؤنٹ",
-    myOrders: "میرے آرڈرز",
     logout: "لاگ آؤٹ",
-    categories: "اقسام",
+    profile: "پروفائل",
+    orders: "آرڈرز",
+    cart: "کارٹ",
+    wishlist: "مرغوب",
+    searchPlaceholder: "تلاش کریں...",
 
-    // Product related
+    // Categories
+    formalWear: "فارمل لباس",
+    casualWear: "کیژول لباس",
+    bridalCollection: "دلہن کا لباس",
+    accessories: "اسیسریز",
+    viewAllCategories: "تمام زمرہ جات دیکھیں",
+
+    // Product
     addToCart: "کارٹ میں شامل کریں",
-    addToWishlist: "خواہش کی فہرست میں شامل کریں",
-    viewDetails: "تفصیلات دیکھیں",
-    price: "قیمت",
-    quantity: "مقدار",
+    addToWishlist: "مرغوب میں شامل کریں",
     color: "رنگ",
     size: "سائز",
+    quantity: "مقدار",
     details: "تفصیلات",
     shipping: "شپنگ",
     returns: "واپسی",
 
-    // Home page
-    discoverCollection: "ہمارا کلیکشن دریافت کریں",
-    exploreSelection:
-      "ہمارے منتخب پاکستانی فیشن کا انتخاب دریافت کریں، جو جدید افراد کے لیے ڈیزائن کیا گیا ہے جو روایت اور شائستگی کو قدر کرتے ہیں۔",
-
-    // Welcome page
-    luxuryFashion: "لگژری پاکستانی فیشن",
-    experienceElegance: "روایتی شائستگی کو ایک نئے طریقے سے تجربہ کریں",
-    exploreCollection: "کلیکشن دیکھیں",
-
-    // Footer
-    newsletter: "نیوز لیٹر",
-    subscribeUpdates: "ہمارے تازہ ترین کلیکشنز اور خصوصی آفرز کے بارے میں اپڈیٹس حاصل کرنے کے لیے سبسکرائب کریں۔",
-    subscribe: "سبسکرائب",
-    allRightsReserved: "جملہ حقوق محفوظ ہیں۔",
-
-    // Auth
+    // Authentication
     welcomeBack: "خوش آمدید",
-    enterCredentials: "اپنے اکاؤنٹ تک رسائی کے لیے اپنی تفصیلات درج کریں",
+    enterCredentials: "جاری رکھنے کے لیے اپنی تفصیلات درج کریں",
     email: "ای میل",
     password: "پاس ورڈ",
     forgotPassword: "پاس ورڈ بھول گئے؟",
     createAccount: "اکاؤنٹ بنائیں",
-    joinUs: "خصوصی پاکستانی فیشن کو دریافت کرنے کے لیے ہمارے ساتھ شامل ہوں",
+    joinUs: "بہترین پاکستانی فیشن کی دنیا میں شامل ہوں",
     fullName: "پورا نام",
     confirmPassword: "پاس ورڈ کی تصدیق کریں",
+    loading: "لوڈ ہو رہا ہے",
 
-    // Cart & Wishlist
-    yourCart: "آپ کی شاپنگ کارٹ",
-    yourWishlist: "آپ کی خواہش کی فہرست",
-    emptyCart: "آپ کی کارٹ خالی ہے",
-    emptyWishlist: "آپ کی خواہش کی فہرست خالی ہے",
-    continueShopping: "شاپنگ جاری رکھیں",
-    product: "پروڈکٹ",
-    total: "کل",
-    subtotal: "سب ٹوٹل",
-    orderSummary: "آرڈر کا خلاصہ",
-    proceedToCheckout: "چیک آؤٹ کریں",
-
-    // Contact
-    contactUs: "ہم سے رابطہ کریں",
-    contactMessage:
-      "ہم آپ سے سننا پسند کریں گے۔ براہ کرم نیچے دیا گیا فارم پُر کریں یا رابطہ کی معلومات کا استعمال کرتے ہوئے ہم سے رابطہ کریں۔",
-    yourName: "آپ کا نام",
+    // Footer
+    quickLinks: "فوری لنکس",
+    customerService: "کسٹمر سروس",
+    shippingPolicy: "شپنگ پالیسی",
+    returnPolicy: "واپسی کی پالیسی",
+    privacyPolicy: "رازداری کی پالیسی",
+    termsConditions: "شرائط و ضوابط",
+    faq: "اکثر پوچھے گئے سوالات",
+    stayConnected: "رابطے میں رہیں",
+    newsletter: "نیوز لیٹر",
+    subscribeToNewsletter: "تازہ ترین معلومات کے لیے ہمارے نیوز لیٹر کو سبسکرائب کریں",
     emailAddress: "ای میل ایڈریس",
-    subject: "موضوع",
-    yourMessage: "آپ کا پیغام",
-    sendMessage: "پیغام بھیجیں",
-    getInTouch: "رابطے میں رہیں",
-    ourLocation: "ہماری لوکیشن",
-    phoneNumber: "فون نمبر",
-    workingHours: "کام کے اوقات",
-    followUs: "ہمیں فالو کریں",
+    subscribe: "سبسکرائب",
+    allRightsReserved: "جملہ حقوق محفوظ ہیں۔",
 
     // Misc
-    loading: "لوڈ ہو رہا ہے",
-    error: "خرابی",
-    pageNotFound: "صفحہ نہیں ملا",
-    pageNotFoundMessage:
-      "جس صفحے کی آپ تلاش کر رہے ہیں وہ ہٹا دیا گیا ہو، اس کا نام تبدیل کیا گیا ہو، یا عارضی طور پر دستیاب نہیں ہے۔",
-    returnToHome: "ہوم پر واپس جائیں",
+    lightMode: "لائٹ موڈ",
+    darkMode: "ڈارک موڈ",
+
+    // Welcome Scene
+    welcomeTitle: "پاکستانی فیشن",
+    welcomeSubtitle: "خوبصورتی دریافت کریں",
+    enterStore: "سٹور میں داخل ہوں",
   },
   ar: {
     // Navigation
     home: "الرئيسية",
-    products: "المنتجات",
-    collections: "المجموعات",
-    newArrivals: "وصل حديثاً",
+    categories: "الفئات",
     ourStory: "قصتنا",
-    contact: "اتصل بنا",
+    contactUs: "اتصل بنا",
     login: "تسجيل الدخول",
     signup: "إنشاء حساب",
-    myAccount: "حسابي",
-    myOrders: "طلباتي",
     logout: "تسجيل الخروج",
-    categories: "الفئات",
+    profile: "الملف الشخصي",
+    orders: "الطلبات",
+    cart: "سلة التسوق",
+    wishlist: "المفضلة",
+    searchPlaceholder: "بحث...",
 
-    // Product related
+    // Categories
+    formalWear: "ملابس رسمية",
+    casualWear: "ملابس عادية",
+    bridalCollection: "مجموعة العروس",
+    accessories: "إكسسوارات",
+    viewAllCategories: "عرض جميع الفئات",
+
+    // Product
     addToCart: "أضف إلى السلة",
     addToWishlist: "أضف إلى المفضلة",
-    viewDetails: "عرض التفاصيل",
-    price: "السعر",
-    quantity: "الكمية",
     color: "اللون",
-    size: "المقاس",
+    size: "الحجم",
+    quantity: "الكمية",
     details: "التفاصيل",
     shipping: "الشحن",
     returns: "الإرجاع",
 
-    // Home page
-    discoverCollection: "اكتشف مجموعتنا",
-    exploreSelection:
-      "استكشف مجموعتنا المختارة من الأزياء الباكستانية الفاخرة، المصممة للفرد العصري الذي يقدر التقاليد والأناقة.",
-
-    // Welcome page
-    luxuryFashion: "أزياء باكستانية فاخرة",
-    experienceElegance: "جرب الأناقة التقليدية في بعد جديد",
-    exploreCollection: "استكشف المجموعة",
-
-    // Footer
-    newsletter: "النشرة الإخبارية",
-    subscribeUpdates: "اشترك للحصول على تحديثات حول أحدث مجموعاتنا والعروض الحصرية.",
-    subscribe: "اشترك",
-    allRightsReserved: "جميع الحقوق محفوظة.",
-
-    // Auth
+    // Authentication
     welcomeBack: "مرحبًا بعودتك",
-    enterCredentials: "أدخل بيانات اعتماد للوصول إلى حسابك",
+    enterCredentials: "الرجاء إدخال بيانات الاعتماد الخاصة بك للمتابعة",
     email: "البريد الإلكتروني",
     password: "كلمة المرور",
     forgotPassword: "نسيت كلمة المرور؟",
     createAccount: "إنشاء حساب",
-    joinUs: "انضم إلينا لاستكشاف الأزياء الباكستانية الحصرية",
+    joinUs: "انضم إلينا لاستكشاف أرقى الأزياء الباكستانية",
     fullName: "الاسم الكامل",
     confirmPassword: "تأكيد كلمة المرور",
+    loading: "جاري التحميل",
 
-    // Cart & Wishlist
-    yourCart: "سلة التسوق الخاصة بك",
-    yourWishlist: "قائمة المفضلة",
-    emptyCart: "سلة التسوق فارغة",
-    emptyWishlist: "قائمة المفضلة فارغة",
-    continueShopping: "مواصلة التسوق",
-    product: "المنتج",
-    total: "المجموع",
-    subtotal: "المجموع الفرعي",
-    orderSummary: "ملخص الطلب",
-    proceedToCheckout: "إتمام الشراء",
-
-    // Contact
-    contactUs: "اتصل بنا",
-    contactMessage: "نحن نحب أن نسمع منك. يرجى ملء النموذج أدناه أو التواصل معنا باستخدام معلومات الاتصال.",
-    yourName: "اسمك",
-    emailAddress: "البريد الإلكتروني",
-    subject: "الموضوع",
-    yourMessage: "رسالتك",
-    sendMessage: "إرسال الرسالة",
-    getInTouch: "ابق على تواصل",
-    ourLocation: "موقعنا",
-    phoneNumber: "رقم الهاتف",
-    workingHours: "ساعات العمل",
-    followUs: "تابعنا",
+    // Footer
+    quickLinks: "روابط سريعة",
+    customerService: "خدمة العملاء",
+    shippingPolicy: "سياسة الشحن",
+    returnPolicy: "سياسة الإرجاع",
+    privacyPolicy: "سياسة الخصوصية",
+    termsConditions: "الشروط والأحكام",
+    faq: "الأسئلة الشائعة",
+    stayConnected: "ابق على تواصل",
+    newsletter: "النشرة الإخبارية",
+    subscribeToNewsletter: "اشترك في نشرتنا الإخبارية للحصول على التحديثات",
+    emailAddress: "عنوان البريد الإلكتروني",
+    subscribe: "اشترك",
+    allRightsReserved: "جميع الحقوق محفوظة.",
 
     // Misc
-    loading: "جاري التحميل",
-    error: "خطأ",
-    pageNotFound: "الصفحة غير موجودة",
-    pageNotFoundMessage: "الصفحة التي تبحث عنها قد تمت إزالتها، أو تغير اسمها، أو غير متوفرة مؤقتًا.",
-    returnToHome: "العودة إلى الرئيسية",
+    lightMode: "الوضع الفاتح",
+    darkMode: "الوضع الداكن",
+
+    // Welcome Scene
+    welcomeTitle: "أزياء باكستانية",
+    welcomeSubtitle: "اكتشف الأناقة",
+    enterStore: "دخول المتجر",
   },
 }
 
-// Language provider component
-export function LanguageProvider({ children }) {
-  const [language, setLanguage] = useState("en")
-  const [translations, setTranslations] = useState(translationsData.en)
+const LanguageContext = createContext()
+
+export const LanguageProvider = ({ children }) => {
+  const [language, setLanguage] = useState(() => {
+    // Get saved language from localStorage or default to 'en'
+    return localStorage.getItem("language") || "en"
+  })
 
   useEffect(() => {
-    // Load saved language preference
-    const savedLanguage = localStorage.getItem("language") || "en"
-    setLanguage(savedLanguage)
-  }, [])
-
-  useEffect(() => {
-    // Update translations when language changes
-    setTranslations(translationsData[language] || translationsData.en)
-
-    // Save language preference
+    // Save language preference to localStorage
     localStorage.setItem("language", language)
 
-    // Set HTML dir attribute for RTL languages
-    document.documentElement.dir = language === "ar" ? "rtl" : "ltr"
+    // Set direction attribute on document body
+    document.documentElement.lang = language
+    document.body.dir = language === "ar" || language === "ur" ? "rtl" : "ltr"
 
-    // Add language-specific class to body
-    document.body.className = document.body.className.replace(/\blang-\w+\b/g, "").trim() + ` lang-${language}`
+    // Add language class to body
+    document.body.className = document.body.className.replace(/\blang-\w+\b/g, "").trim()
+    document.body.classList.add(`lang-${language}`)
+
+    // Add RTL class if needed
+    if (language === "ar" || language === "ur") {
+      document.body.classList.add("rtl")
+    } else {
+      document.body.classList.remove("rtl")
+    }
   }, [language])
 
-  // Translate a key
+  const changeLanguage = (lang) => {
+    if (translations[lang]) {
+      setLanguage(lang)
+    }
+  }
+
+  // Function to get translation
   const t = (key) => {
-    return translations[key] || key
+    return translations[language]?.[key] || key
   }
 
   return (
     <LanguageContext.Provider
       value={{
         language,
-        setLanguage,
+        changeLanguage,
         t,
-        translations,
+        translations: translations[language] || translations.en,
       }}
     >
       {children}
@@ -318,14 +263,20 @@ export function LanguageProvider({ children }) {
   )
 }
 
-// Custom hook to use the language context
-export function useLanguage() {
+export const useLanguage = () => {
   const context = useContext(LanguageContext)
-
-  if (context === undefined) {
-    throw new Error("useLanguage must be used within a LanguageProvider")
+  if (!context) {
+    console.warn("useLanguage must be used within a LanguageProvider")
+    // Return a default object to prevent errors
+    return {
+      language: "en",
+      changeLanguage: () => {},
+      t: (key) => key,
+      translations: translations.en,
+    }
   }
-
   return context
 }
+
+export default LanguageContext
 

@@ -1,19 +1,17 @@
 "use client"
 
-import { useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useNavigate, useSearchParams, Link } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
-import { useToast } from "../hooks/useToast"
+import { useToast } from "../contexts/ToastContext"
 import { useLanguage } from "../contexts/LanguageContext"
-import Navbar from "../components/layout/Navbar"
-import Footer from "../components/layout/Footer"
 import "../styles/LoginPage.css"
 
 function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const redirect = searchParams.get("redirect") || "/home"
-  const { login, signup } = useAuth()
+  const { user, login, signup } = useAuth()
   const toast = useToast()
   const { t } = useLanguage()
 
@@ -30,13 +28,20 @@ function LoginPage() {
     confirmPassword: "",
   })
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate(redirect)
+    }
+  }, [user, navigate, redirect])
+
   const handleLogin = async (e) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
       await login(loginData.email, loginData.password)
-      toast.success("Welcome back to Elegance")
+      toast.success("Welcome back to Pakistani Fashion")
       navigate(redirect)
     } catch (error) {
       toast.error(error.message || "Please check your credentials and try again")
@@ -49,7 +54,7 @@ function LoginPage() {
     e.preventDefault()
 
     if (signupData.password !== signupData.confirmPassword) {
-      toast.error("Please make sure your passwords match")
+      toast.error("Passwords do not match")
       return
     }
 
@@ -57,7 +62,7 @@ function LoginPage() {
 
     try {
       await signup(signupData.name, signupData.email, signupData.password)
-      toast.success("Welcome to Elegance")
+      toast.success("Welcome to Pakistani Fashion")
       navigate(redirect)
     } catch (error) {
       toast.error(error.message || "There was an error creating your account")
@@ -68,8 +73,6 @@ function LoginPage() {
 
   return (
     <div className="login-page">
-      <Navbar />
-
       <div className="login-container">
         <div className="login-card">
           <div className="login-tabs">
@@ -77,25 +80,25 @@ function LoginPage() {
               className={`tab-button ${activeTab === "login" ? "active" : ""}`}
               onClick={() => setActiveTab("login")}
             >
-              {t("login")}
+              {t("login") || "Login"}
             </button>
             <button
               className={`tab-button ${activeTab === "signup" ? "active" : ""}`}
               onClick={() => setActiveTab("signup")}
             >
-              {t("signup")}
+              {t("signup") || "Sign Up"}
             </button>
           </div>
 
           <div className="tab-content">
             {activeTab === "login" ? (
               <div className="login-form-container">
-                <h2 className="form-title">{t("welcomeBack")}</h2>
-                <p className="form-subtitle">{t("enterCredentials")}</p>
+                <h2 className="form-title">{t("welcomeBack") || "Welcome Back"}</h2>
+                <p className="form-subtitle">{t("enterCredentials") || "Please enter your credentials to continue"}</p>
 
                 <form onSubmit={handleLogin} className="auth-form">
                   <div className="form-group">
-                    <label htmlFor="email">{t("email")}</label>
+                    <label htmlFor="email">{t("email") || "Email"}</label>
                     <input
                       id="email"
                       type="email"
@@ -109,10 +112,10 @@ function LoginPage() {
 
                   <div className="form-group">
                     <div className="password-header">
-                      <label htmlFor="password">{t("password")}</label>
-                      <a href="/forgot-password" className="forgot-password">
-                        {t("forgotPassword")}
-                      </a>
+                      <label htmlFor="password">{t("password") || "Password"}</label>
+                      <Link to="/forgot-password" className="forgot-password">
+                        {t("forgotPassword") || "Forgot Password?"}
+                      </Link>
                     </div>
                     <input
                       id="password"
@@ -128,22 +131,22 @@ function LoginPage() {
                     {isLoading ? (
                       <>
                         <i className="icon-loading"></i>
-                        {t("loading")}...
+                        {t("loading") || "Loading"}...
                       </>
                     ) : (
-                      t("login")
+                      t("login") || "Login"
                     )}
                   </button>
                 </form>
               </div>
             ) : (
               <div className="signup-form-container">
-                <h2 className="form-title">{t("createAccount")}</h2>
-                <p className="form-subtitle">{t("joinUs")}</p>
+                <h2 className="form-title">{t("createAccount") || "Create Account"}</h2>
+                <p className="form-subtitle">{t("joinUs") || "Join us to explore the finest Pakistani fashion"}</p>
 
                 <form onSubmit={handleSignup} className="auth-form">
                   <div className="form-group">
-                    <label htmlFor="name">{t("fullName")}</label>
+                    <label htmlFor="name">{t("fullName") || "Full Name"}</label>
                     <input
                       id="name"
                       placeholder="Your Name"
@@ -155,7 +158,7 @@ function LoginPage() {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="signup-email">{t("email")}</label>
+                    <label htmlFor="signup-email">{t("email") || "Email"}</label>
                     <input
                       id="signup-email"
                       type="email"
@@ -168,7 +171,7 @@ function LoginPage() {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="signup-password">{t("password")}</label>
+                    <label htmlFor="signup-password">{t("password") || "Password"}</label>
                     <input
                       id="signup-password"
                       type="password"
@@ -180,7 +183,7 @@ function LoginPage() {
                   </div>
 
                   <div className="form-group">
-                    <label htmlFor="confirm-password">{t("confirmPassword")}</label>
+                    <label htmlFor="confirm-password">{t("confirmPassword") || "Confirm Password"}</label>
                     <input
                       id="confirm-password"
                       type="password"
@@ -195,10 +198,10 @@ function LoginPage() {
                     {isLoading ? (
                       <>
                         <i className="icon-loading"></i>
-                        {t("loading")}...
+                        {t("loading") || "Loading"}...
                       </>
                     ) : (
-                      t("signup")
+                      t("signup") || "Sign Up"
                     )}
                   </button>
                 </form>
@@ -207,8 +210,6 @@ function LoginPage() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   )
 }

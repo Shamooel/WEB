@@ -3,14 +3,20 @@ const router = express.Router()
 const wishlistController = require("../controllers/wishlistController")
 const { authenticateToken } = require("../middleware/auth")
 
-// Get wishlist items
-router.get("/", authenticateToken, wishlistController.getWishlistItems)
+// Apply authentication middleware to all wishlist routes
+router.use(authenticateToken)
+
+// Get user wishlist
+router.get("/", wishlistController.getWishlist)
 
 // Add item to wishlist
-router.post("/", authenticateToken, wishlistController.addToWishlist)
+router.post("/", wishlistController.addToWishlist)
 
 // Remove item from wishlist
-router.delete("/:id", authenticateToken, wishlistController.removeFromWishlist)
+router.delete("/:productId", wishlistController.removeFromWishlist)
+
+// Clear wishlist
+router.delete("/", wishlistController.clearWishlist)
 
 module.exports = router
 

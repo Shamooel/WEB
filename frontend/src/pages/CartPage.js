@@ -1,223 +1,279 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
-import Navbar from "../components/layout/Navbar"
-import Footer from "../components/layout/Footer"
+import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
-import { useTheme } from "../contexts/ThemeContext"
-import { useToast } from "../hooks/useToast"
-import { fetchProductById } from "../services/api"
+import { useToast } from "../contexts/ToastContext"
+import { fetchCart, updateCartItem, removeFromCart, createOrder } from "../services/api"
+import LoadingScreen from "../components/common/LoadingScreen"
 import "../styles/CartPage.css"
 
-function CartPage() {
+const CartPage = () => {
   const { user } = useAuth()
-  const { theme } = useTheme()
   const toast = useToast()
+  const navigate = useNavigate()
 
-  const [cartItems, setCartItems] = useState([])
+  const [cart, setCart] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [subtotal, setSubtotal] = useState(0)
+  const [error, setError] = useState(null)
+  const [processingCheckout, setProcessingCheckout] = useState(false)
 
   useEffect(() => {
-    const fetchCartItems = async () => {
+    if (!user) {
+      navigate("/login?redirect=/cart")
+      return
+    }
+
+    const getCart = async () => {
       try {
-        // Get cart items from localStorage
-        const cartIds = JSON.parse(localStorage.getItem("cart") || "[]")
-
-        // Fetch product details for each item
-        const itemPromises = cartIds.map(async (id) => {
-          const product = await fetchProductById(id)
-          return {
-            ...product,
-            quantity: 1, // Default quantity
-          }
-        })
-
-        const items = await Promise.all(itemPromises)
-        setCartItems(items)
-
-        // Calculate subtotal
-        const total = items.reduce((sum, item) => {
-          const price = item.discountPrice || item.price
-          return sum + price * item.quantity
-        }, 0)
-
-        setSubtotal(total)
-        setLoading(false)
-      } catch (error) {
-        console.error("Error fetching cart items:", error)
-        toast.error("Failed to load cart items")
+        setLoading(true)
+        const cartData = await fetchCart()
+        setCart(cartData)
+      } catch (err) {
+        console.error("Error fetching cart:", err)
+        setError("Failed to load your cart. Please try again later.")
+      } finally {
         setLoading(false)
       }
     }
 
-    fetchCartItems()
-  }, [toast])
+    getCart()
+  }, [user, navigate])
 
-  const handleQuantityChange = (index, newQuantity) => {
-    if (newQuantity < 1) return
+  const handleQuantityChange = async (itemId, newQuantity) => {
+    if (newQuantity < 1 || newQuantity > 10) return
 
-    const updatedItems = [...cartItems]
-    updatedItems[index].quantity = newQuantity
-    setCartItems(updatedItems)
+    try {
+      // Optimistically update UI
+      setCart((prevCart) => ({
+        ...prevCart,
+        items: prevCart.items.map((item) => (item.id === itemId ? { ...item, quantity: newQuantity } : item)),
+      }))
 
-    // Recalculate subtotal
-    const total = updatedItems.reduce((sum, item) => {
-      const price = item.discountPrice || item.price
-      return sum + price * item.quantity
-    }, 0)
+      // Update on server
+      await updateCartItem(itemId, { quantity: newQuantity })
 
-    setSubtotal(total)
+      // Recalculate totals
+      calculateTotals()
+    } catch (err) {
+      console.error("Error updating quantity:", err)
+      toast.error("Failed to update quantity")
+
+      // Revert to original state
+      const originalCart = await fetchCart()
+      setCart(originalCart)
+    }
   }
 
-  const handleRemoveItem = (index) => {
-    // Remove from state
-    const updatedItems = [...cartItems]
-    updatedItems.splice(index, 1)
-    setCartItems(updatedItems)
+  const handleRemoveItem = async (itemId) => {
+    try {
+      // Optimistically update UI
+      setCart((prevCart) => ({
+        ...prevCart,
+        items: prevCart.items.filter((item) => item.id !== itemId),
+      }))
 
-    // Remove from localStorage
-    const cartIds = JSON.parse(localStorage.getItem("cart") || "[]")
-    cartIds.splice(index, 1)
-    localStorage.setItem("cart", JSON.stringify(cartIds))
+      // Remove on server
+      await removeFromCart(itemId)
 
-    // Recalculate subtotal
-    const total = updatedItems.reduce((sum, item) => {
-      const price = item.discountPrice || item.price
-      return sum + price * item.quantity
-    }, 0)
+      // Recalculate totals
+      calculateTotals()
 
-    setSubtotal(total)
+      toast.success("Item removed from cart")
+    } catch (err) {
+      console.error("Error removing item:", err)
+      toast.error("Failed to remove item")
 
-    toast.success("Item removed from cart")
+      // Revert to original state
+      const originalCart = await fetchCart()
+      setCart(originalCart)
+    }
+  }
+
+  const calculateTotals = () => {
+    if (!cart || !cart.items || cart.items.length === 0) return
+
+    const subtotal = cart.items.reduce((total, item) => total + item.price * item.quantity, 0)
+
+    const shipping = subtotal > 5000 ? 0 : 250
+    const tax = subtotal * 0.05 // 5% tax
+    const total = subtotal + shipping + tax
+
+    setCart((prevCart) => ({
+      ...prevCart,
+      subtotal,
+      shipping,
+      tax,
+      total,
+    }))
+  }
+
+  const handleCheckout = async () => {
+    if (!cart || !cart.items || cart.items.length === 0) {
+      toast.warning("Your cart is empty")
+      return
+    }
+
+    try {
+      setProcessingCheckout(true)
+
+      // Create order from cart
+      const order = await createOrder({
+        items: cart.items,
+        subtotal: cart.subtotal,
+        shipping: cart.shipping,
+        tax: cart.tax,
+        total: cart.total,
+      })
+
+      toast.success("Order placed successfully!")
+
+      // Redirect to order confirmation page
+      navigate(`/orders/${order.id}`)
+    } catch (err) {
+      console.error("Error during checkout:", err)
+      toast.error("Failed to process your order. Please try again.")
+    } finally {
+      setProcessingCheckout(false)
+    }
   }
 
   if (loading) {
+    return <LoadingScreen message="Loading your cart..." />
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <h2>Oops! Something went wrong</h2>
+        <p>{error}</p>
+        <button onClick={() => window.location.reload()}>Try Again</button>
+      </div>
+    )
+  }
+
+  if (!cart || !cart.items || cart.items.length === 0) {
     return (
       <div className="cart-page">
-        <Navbar />
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading your cart...</p>
+        <div className="cart-container">
+          <div className="empty-cart">
+            <h2>Your Cart is Empty</h2>
+            <p>Looks like you haven't added any items to your cart yet.</p>
+            <Link to="/categories" className="continue-shopping-button">
+              Continue Shopping
+            </Link>
+          </div>
         </div>
-        <Footer />
       </div>
     )
   }
 
   return (
-    <div className={`cart-page ${theme === "dark" ? "dark" : "light"}`}>
-      <Navbar />
-
-      <main className="cart-main">
+    <div className="cart-page">
+      <div className="cart-container">
         <h1 className="cart-title">Your Shopping Cart</h1>
 
-        {cartItems.length === 0 ? (
-          <div className="empty-cart">
-            <div className="empty-cart-icon">🛒</div>
-            <h2>Your cart is empty</h2>
-            <p>Looks like you haven't added any items to your cart yet.</p>
-            <Link to="/home" className="continue-shopping-button">
-              Continue Shopping
-            </Link>
-          </div>
-        ) : (
-          <div className="cart-content">
-            <div className="cart-items">
-              <div className="cart-header">
-                <span className="header-product">Product</span>
-                <span className="header-price">Price</span>
-                <span className="header-quantity">Quantity</span>
-                <span className="header-total">Total</span>
-              </div>
+        <div className="cart-content">
+          <div className="cart-items">
+            <div className="cart-header">
+              <span className="header-product">Product</span>
+              <span className="header-price">Price</span>
+              <span className="header-quantity">Quantity</span>
+              <span className="header-total">Total</span>
+              <span className="header-actions"></span>
+            </div>
 
-              {cartItems.map((item, index) => (
-                <div key={item.id} className="cart-item">
-                  <div className="item-product">
-                    <img src={item.image || "/placeholder.svg"} alt={item.name} className="item-image" />
-                    <div className="item-details">
-                      <h3 className="item-name">{item.name}</h3>
-                      <p className="item-category">{item.category}</p>
-                      <button className="remove-button" onClick={() => handleRemoveItem(index)}>
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="item-price">
-                    {item.discountPrice ? (
-                      <>
-                        <span className="discount-price">Rs. {item.discountPrice}</span>
-                        <span className="original-price">Rs. {item.price}</span>
-                      </>
-                    ) : (
-                      <span>Rs. {item.price}</span>
-                    )}
-                  </div>
-
-                  <div className="item-quantity">
-                    <div className="quantity-selector">
-                      <button
-                        className="quantity-button"
-                        onClick={() => handleQuantityChange(index, item.quantity - 1)}
-                        disabled={item.quantity <= 1}
-                      >
-                        -
-                      </button>
-                      <span className="quantity-value">{item.quantity}</span>
-                      <button
-                        className="quantity-button"
-                        onClick={() => handleQuantityChange(index, item.quantity + 1)}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="item-total">
-                    Rs. {((item.discountPrice || item.price) * item.quantity).toFixed(2)}
+            {cart.items.map((item) => (
+              <div className="cart-item" key={item.id}>
+                <div className="item-product">
+                  <img
+                    src={item.image || "/placeholder.svg?height=80&width=80"}
+                    alt={item.name}
+                    className="item-image"
+                  />
+                  <div className="item-details">
+                    <h3 className="item-name">{item.name}</h3>
+                    {item.color && <p className="item-color">Color: {item.color}</p>}
+                    {item.size && <p className="item-size">Size: {item.size}</p>}
                   </div>
                 </div>
-              ))}
+
+                <div className="item-price">Rs. {item.price}</div>
+
+                <div className="item-quantity">
+                  <button
+                    className="quantity-button"
+                    onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                    disabled={item.quantity <= 1}
+                    aria-label="Decrease quantity"
+                  >
+                    -
+                  </button>
+                  <span className="quantity-value">{item.quantity}</span>
+                  <button
+                    className="quantity-button"
+                    onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                    disabled={item.quantity >= 10}
+                    aria-label="Increase quantity"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <div className="item-total">Rs. {item.price * item.quantity}</div>
+
+                <div className="item-actions">
+                  <button className="remove-button" onClick={() => handleRemoveItem(item.id)} aria-label="Remove item">
+                    ✕
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="cart-summary">
+            <h2 className="summary-title">Order Summary</h2>
+
+            <div className="summary-row">
+              <span>Subtotal</span>
+              <span>Rs. {cart.subtotal}</span>
             </div>
 
-            <div className="cart-summary">
-              <h2 className="summary-title">Order Summary</h2>
+            <div className="summary-row">
+              <span>Shipping</span>
+              <span>{cart.shipping === 0 ? "Free" : `Rs. ${cart.shipping}`}</span>
+            </div>
 
-              <div className="summary-row">
-                <span>Subtotal</span>
-                <span>Rs. {subtotal.toFixed(2)}</span>
+            <div className="summary-row">
+              <span>Tax (5%)</span>
+              <span>Rs. {cart.tax}</span>
+            </div>
+
+            <div className="summary-total">
+              <span>Total</span>
+              <span>Rs. {cart.total}</span>
+            </div>
+
+            <button className="checkout-button" onClick={handleCheckout} disabled={processingCheckout}>
+              {processingCheckout ? "Processing..." : "Proceed to Checkout"}
+            </button>
+
+            <Link to="/categories" className="continue-shopping-link">
+              Continue Shopping
+            </Link>
+
+            <div className="payment-methods">
+              <p>We Accept</p>
+              <div className="payment-icons">
+                <img src="/placeholder.svg?height=30&width=50" alt="Visa" />
+                <img src="/placeholder.svg?height=30&width=50" alt="Mastercard" />
+                <img src="/placeholder.svg?height=30&width=50" alt="PayPal" />
+                <img src="/placeholder.svg?height=30&width=50" alt="Apple Pay" />
               </div>
-
-              <div className="summary-row">
-                <span>Shipping</span>
-                <span>{subtotal > 5000 ? "Free" : "Rs. 300.00"}</span>
-              </div>
-
-              <div className="summary-row">
-                <span>Tax (5%)</span>
-                <span>Rs. {(subtotal * 0.05).toFixed(2)}</span>
-              </div>
-
-              <div className="summary-divider"></div>
-
-              <div className="summary-row total">
-                <span>Total</span>
-                <span>Rs. {(subtotal + (subtotal > 5000 ? 0 : 300) + subtotal * 0.05).toFixed(2)}</span>
-              </div>
-
-              <button className="checkout-button">Proceed to Checkout</button>
-
-              <Link to="/home" className="continue-shopping-link">
-                Continue Shopping
-              </Link>
             </div>
           </div>
-        )}
-      </main>
-
-      <Footer />
+        </div>
+      </div>
     </div>
   )
 }

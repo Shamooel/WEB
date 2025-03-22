@@ -3,17 +3,23 @@ const router = express.Router()
 const cartController = require("../controllers/cartController")
 const { authenticateToken } = require("../middleware/auth")
 
-// Get cart items
-router.get("/", authenticateToken, cartController.getCartItems)
+// Apply authentication middleware to all cart routes
+router.use(authenticateToken)
+
+// Get user cart
+router.get("/", cartController.getCart)
 
 // Add item to cart
-router.post("/", authenticateToken, cartController.addToCart)
+router.post("/", cartController.addToCart)
 
-// Update cart item quantity
-router.put("/:id", authenticateToken, cartController.updateCartItem)
+// Update cart item
+router.put("/", cartController.updateCartItem)
 
 // Remove item from cart
-router.delete("/:id", authenticateToken, cartController.removeFromCart)
+router.delete("/:productId", cartController.removeFromCart)
+
+// Clear cart
+router.delete("/", cartController.clearCart)
 
 module.exports = router
 

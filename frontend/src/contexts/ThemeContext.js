@@ -1,43 +1,37 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useState, useContext, useEffect } from "react"
 
 const ThemeContext = createContext()
 
-export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState("light")
+export const ThemeProvider = ({ children }) => {
+  const [theme, setTheme] = useState(() => {
+    // Get saved theme from localStorage or default to 'light'
+    return localStorage.getItem("theme") || "light"
+  })
 
-  // Initialize theme from localStorage or system preference
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme")
+    // Save theme preference to localStorage
+    localStorage.setItem("theme", theme)
 
-    if (savedTheme) {
-      setTheme(savedTheme)
-    } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setTheme("dark")
+    // Apply theme class to body
+    if (theme === "dark") {
+      document.body.classList.add("theme-dark")
+      document.body.classList.remove("theme-light")
+    } else {
+      document.body.classList.add("theme-light")
+      document.body.classList.remove("theme-dark")
     }
-
-    // Apply theme to document
-    document.documentElement.classList.toggle("dark", theme === "dark")
   }, [theme])
 
-  // Function to change theme
-  const changeTheme = (newTheme) => {
-    setTheme(newTheme)
-    localStorage.setItem("theme", newTheme)
-    document.documentElement.classList.toggle("dark", newTheme === "dark")
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light")
   }
 
-  return <ThemeContext.Provider value={{ theme, setTheme: changeTheme }}>{children}</ThemeContext.Provider>
+  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
 }
 
-export function useTheme() {
-  const context = useContext(ThemeContext)
+export const useTheme = () => useContext(ThemeContext)
 
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider")
-  }
-
-  return context
-}
+export default ThemeContext
 

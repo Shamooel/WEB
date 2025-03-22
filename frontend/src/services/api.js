@@ -1,165 +1,274 @@
-// API service for frontend to communicate with backend
+import axios from "axios"
 
-// Environment variables
+// Use environment variable or default to localhost
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api"
 
-// Helper function for API requests
-async function apiRequest(url, method = "GET", data = null) {
+// Create axios instance
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+})
+
+// Add token to requests if available
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => Promise.reject(error),
+)
+
+// Handle response errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Handle token expiration
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem("token")
+      localStorage.removeItem("user")
+      window.location.href = "/login"
+    }
+    return Promise.reject(error)
+  },
+)
+
+// Authentication APIs
+export const login = async (email, password) => {
   try {
-    const options = {
-      method,
-      headers: {
-        "Content-Type": "application/json",
+    const response = await api.post("/auth/login", { email, password })
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Login failed")
+  }
+}
+
+export const signup = async (userData) => {
+  try {
+    const response = await api.post("/auth/signup", userData)
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Signup failed")
+  }
+}
+
+export const logout = async () => {
+  try {
+    await api.post("/auth/logout")
+    return { success: true }
+  } catch (error) {
+    console.error("Logout error:", error)
+    return { success: false }
+  }
+}
+
+// Product APIs
+export const fetchProducts = async (params = {}) => {
+  try {
+    const response = await api.get("/products", { params })
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to fetch products")
+  }
+}
+
+export const fetchProductById = async (id) => {
+  try {
+    const response = await api.get(`/products/${id}`)
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to fetch product")
+  }
+}
+
+export const fetchFeaturedProducts = async () => {
+  try {
+    const response = await api.get("/products/featured")
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to fetch featured products")
+  }
+}
+
+export const searchProducts = async (query) => {
+  try {
+    const response = await api.get(`/products/search?query=${query}`)
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to search products")
+  }
+}
+
+// Category APIs
+export const fetchCategories = async () => {
+  try {
+    const response = await api.get("/categories")
+    return response.data
+  } catch (error) {
+    // Return mock data if API fails
+    console.warn("Using mock category data due to API error:", error)
+    return [
+      {
+        id: "formal-wear",
+        name: "Formal Wear",
+        image: "/placeholder.svg?height=300&width=300",
+        description: "Elegant formal wear for special occasions",
       },
-    }
-
-    if (data) {
-      options.body = JSON.stringify(data)
-    }
-
-    // Add auth token if available
-    const user = JSON.parse(localStorage.getItem("user") || "null")
-    if (user && user.token) {
-      options.headers.Authorization = `Bearer ${user.token}`
-    }
-
-    const response = await fetch(`${API_URL}${url}`, options)
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || "Something went wrong")
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error(`API Error (${url}):`, error)
-    // For demo purposes, return mock data if API fails
-    if (url === "/products") {
-      return getMockProducts()
-    } else if (url.startsWith("/products/")) {
-      const id = url.split("/").pop()
-      return getMockProductById(id)
-    }
-    throw error
+      {
+        id: "casual-wear",
+        name: "Casual Wear",
+        image: "/placeholder.svg?height=300&width=300",
+        description: "Comfortable casual wear for everyday use",
+      },
+      {
+        id: "bridal-collection",
+        name: "Bridal Collection",
+        image: "/placeholder.svg?height=300&width=300",
+        description: "Exquisite bridal wear for your special day",
+      },
+      {
+        id: "accessories",
+        name: "Accessories",
+        image: "/placeholder.svg?height=300&width=300",
+        description: "Beautiful accessories to complement your outfit",
+      },
+    ]
   }
 }
 
-// Mock data for fallback
-function getMockProducts() {
-  return [
-    {
-      id: "1",
-      name: "Embroidered Chiffon Dress",
-      category: "Formal Wear",
-      price: 12500,
-      discountPrice: 9999,
-      image: "/placeholder.svg?height=600&width=450",
-      description: "Luxurious embroidered chiffon dress with intricate handwork, perfect for special occasions.",
-      colors: ["Teal", "Maroon", "Navy Blue"],
-      sizes: ["S", "M", "L", "XL"],
-      isNew: true,
-      inStock: true,
-    },
-    {
-      id: "2",
-      name: "Printed Lawn Suit",
-      category: "Casual Wear",
-      price: 4500,
-      discountPrice: null,
-      image: "/placeholder.svg?height=600&width=450",
-      description: "Comfortable printed lawn suit for everyday wear, featuring modern Pakistani designs.",
-      colors: ["Blue", "Green", "Pink"],
-      sizes: ["S", "M", "L", "XL"],
-      isNew: false,
-      inStock: true,
-    },
-    {
-      id: "3",
-      name: "Embellished Velvet Shawl",
-      category: "Winter Collection",
-      price: 8000,
-      discountPrice: 6500,
-      image: "/placeholder.svg?height=600&width=450",
-      description: "Elegant velvet shawl with beautiful embellishments, perfect for winter weddings.",
-      colors: ["Burgundy", "Emerald", "Royal Blue"],
-      sizes: ["One Size"],
-      isNew: true,
-      inStock: true,
-    },
-    {
-      id: "4",
-      name: "Silk Jacquard Kurta",
-      category: "Semi-Formal",
-      price: 7500,
-      discountPrice: null,
-      image: "/placeholder.svg?height=600&width=450",
-      description: "Sophisticated silk jacquard kurta with contemporary design elements.",
-      colors: ["Gold", "Silver", "Rose Gold"],
-      sizes: ["S", "M", "L"],
-      isNew: false,
-      inStock: true,
-    },
-  ]
-}
-
-function getMockProductById(id) {
-  const products = getMockProducts()
-  return products.find((p) => p.id === id) || null
-}
-
-// Product API calls
-export const fetchProducts = () => apiRequest("/products")
-export const fetchProductById = (id) => apiRequest(`/products/${id}`)
-export const fetchProductsByCategory = (category) => apiRequest(`/products/category/${category}`)
-
-// Auth API calls
-export const loginUser = async (email, password) => {
+export const fetchCategoryById = async (id) => {
   try {
-    return await apiRequest("/auth/login", "POST", { email, password })
+    const response = await api.get(`/categories/${id}`)
+    return response.data
   } catch (error) {
-    // For demo purposes, simulate successful login
-    if (process.env.NODE_ENV === "development") {
-      console.log("Using mock login in development")
-      return {
-        id: "1",
-        name: "Demo User",
-        email: email,
-        token: "demo-token-123456",
-      }
-    }
-    throw new Error("Invalid credentials. Please try again.")
+    throw new Error(error.response?.data?.message || "Failed to fetch category")
   }
 }
 
-export const signupUser = async (name, email, password) => {
+export const fetchProductsByCategory = async (categoryId) => {
   try {
-    return await apiRequest("/auth/signup", "POST", { name, email, password })
+    const response = await api.get(`/products/category/${categoryId}`)
+    return response.data
   } catch (error) {
-    // For demo purposes, simulate successful signup
-    if (process.env.NODE_ENV === "development") {
-      console.log("Using mock signup in development")
-      return {
-        id: "1",
-        name: name,
-        email: email,
-        token: "demo-token-123456",
-      }
-    }
-    if (error.message.includes("already exists")) {
-      throw new Error("Email already in use. Please try a different email or login.")
-    }
-    throw new Error("Failed to create account. Please try again.")
+    throw new Error(error.response?.data?.message || "Failed to fetch products by category")
   }
 }
 
-// Cart API calls
-export const addToCartApi = (productId, quantity = 1) => apiRequest("/cart", "POST", { productId, quantity })
-export const getCartItems = () => apiRequest("/cart")
-export const updateCartItem = (productId, quantity) => apiRequest(`/cart/${productId}`, "PUT", { quantity })
-export const removeFromCart = (productId) => apiRequest(`/cart/${productId}`, "DELETE")
+// Cart APIs
+export const fetchCart = async () => {
+  try {
+    const response = await api.get("/cart")
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to fetch cart")
+  }
+}
 
-// Wishlist API calls
-export const addToWishlistApi = (productId) => apiRequest("/wishlist", "POST", { productId })
-export const getWishlistItems = () => apiRequest("/wishlist")
-export const removeFromWishlist = (productId) => apiRequest(`/wishlist/${productId}`, "DELETE")
+export const addToCart = async (productId, quantity = 1) => {
+  try {
+    const response = await api.post("/cart", { productId, quantity })
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to add to cart")
+  }
+}
+
+export const updateCartItem = async (productId, quantity) => {
+  try {
+    const response = await api.put("/cart", { productId, quantity })
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to update cart")
+  }
+}
+
+export const removeFromCart = async (productId) => {
+  try {
+    const response = await api.delete(`/cart/${productId}`)
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to remove from cart")
+  }
+}
+
+// Wishlist APIs
+export const fetchWishlist = async () => {
+  try {
+    const response = await api.get("/wishlist")
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to fetch wishlist")
+  }
+}
+
+export const addToWishlist = async (productId) => {
+  try {
+    const response = await api.post("/wishlist", { productId })
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to add to wishlist")
+  }
+}
+
+export const removeFromWishlist = async (productId) => {
+  try {
+    const response = await api.delete(`/wishlist/${productId}`)
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to remove from wishlist")
+  }
+}
+
+// Order APIs
+export const createOrder = async (orderData) => {
+  try {
+    const response = await api.post("/orders", orderData)
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to create order")
+  }
+}
+
+export const fetchOrders = async () => {
+  try {
+    const response = await api.get("/orders")
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to fetch orders")
+  }
+}
+
+export const fetchOrderById = async (id) => {
+  try {
+    const response = await api.get(`/orders/${id}`)
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to fetch order")
+  }
+}
+
+// User APIs
+export const fetchUserProfile = async () => {
+  try {
+    const response = await api.get("/users/profile")
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to fetch profile")
+  }
+}
+
+export const updateUserProfile = async (userData) => {
+  try {
+    const response = await api.put("/users/profile", userData)
+    return response.data
+  } catch (error) {
+    throw new Error(error.response?.data?.message || "Failed to update profile")
+  }
+}
+
+export default api
 

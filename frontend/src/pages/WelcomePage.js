@@ -1,51 +1,49 @@
 "use client"
 
-import { useState } from "react"
-import { Link } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import WelcomeScene from "../components/3d/WelcomeScene"
-import { useLanguage } from "../contexts/LanguageContext"
-import { generatePlaceholderImage } from "../utils/imageUtils"
+import LoadingScreen from "../components/common/LoadingScreen"
 import "../styles/WelcomePage.css"
 
 function WelcomePage() {
   const [loading, setLoading] = useState(true)
-  const { t } = useLanguage()
+  const [sceneReady, setSceneReady] = useState(false)
+  const navigate = useNavigate()
 
-  // Generate a placeholder logo
-  const logoUrl = generatePlaceholderImage(200, 100, "Elegance")
+  useEffect(() => {
+    // Simulate loading assets
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 2000)
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  const handleEnterSite = () => {
+    navigate("/home")
+  }
+
+  const handleSceneReady = () => {
+    setSceneReady(true)
+  }
+
+  if (loading) {
+    return <LoadingScreen message="Preparing your fashion experience..." />
+  }
 
   return (
     <div className="welcome-page">
-      {/* 3D Scene */}
-      <WelcomeScene onLoaded={() => setLoading(false)} />
+      <WelcomeScene onSceneReady={handleSceneReady} />
 
-      {/* Overlay Content */}
-      <div className="welcome-overlay">
-        <div className="welcome-content">
-          <div className="logo-container animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-            <img src={logoUrl || "/placeholder.svg"} alt="Elegance Logo" className="welcome-logo" />
-          </div>
-          <h1 className="welcome-title animate-fade-in-up" style={{ animationDelay: "0.8s" }}>
-            {t("luxuryFashion")}
-          </h1>
-          <p className="welcome-subtitle animate-fade-in-up" style={{ animationDelay: "1.1s" }}>
-            {t("experienceElegance")}
-          </p>
-          <div className="welcome-button-container animate-fade-in-up" style={{ animationDelay: "1.4s" }}>
-            <Link to="/home" className="welcome-button">
-              {t("exploreCollection")}
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Loading Overlay */}
-      {loading && (
-        <div className="loading-overlay">
-          <div className="loading-content">
-            <img src={logoUrl || "/placeholder.svg"} alt="Elegance Logo" className="loading-logo" />
-            <div className="loading-spinner"></div>
-            <p>{t("loading")}...</p>
+      {sceneReady && (
+        <div className="welcome-overlay">
+          <div className="welcome-content">
+            <h1 className="welcome-title">Pakistani Fashion</h1>
+            <p className="welcome-subtitle">Experience tradition with modern elegance</p>
+            <button className="enter-button" onClick={handleEnterSite}>
+              Enter Site
+            </button>
           </div>
         </div>
       )}

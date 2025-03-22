@@ -1,71 +1,103 @@
-// In a real application, this would connect to a database
-// For now, we'll use an in-memory store
+// In-memory wishlist store (in a real app, this would be a database)
 const wishlists = {}
 
-// Get wishlist items
-exports.getWishlistItems = (req, res) => {
-  const userId = req.user.id
+// Get user wishlist
+exports.getWishlist = async (req, res) => {
+  try {
+    const userId = req.user.id
 
-  // Get user's wishlist or initialize empty array
-  const userWishlist = wishlists[userId] || []
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 300))
 
-  // Simulate API delay
-  setTimeout(() => {
-    res.json(userWishlist)
-  }, 500)
+    // Get or initialize wishlist
+    const wishlist = wishlists[userId] || []
+
+    res.json(wishlist)
+  } catch (error) {
+    console.error("Error fetching wishlist:", error)
+    res.status(500).json({ message: "Failed to fetch wishlist" })
+  }
 }
 
 // Add item to wishlist
-exports.addToWishlist = (req, res) => {
-  const userId = req.user.id
-  const { productId } = req.body
+exports.addToWishlist = async (req, res) => {
+  try {
+    const userId = req.user.id
+    const { productId } = req.body
 
-  // Validate input
-  if (!productId) {
-    return res.status(400).json({ message: "Product ID is required" })
-  }
-
-  // Initialize user's wishlist if it doesn't exist
-  if (!wishlists[userId]) {
-    wishlists[userId] = []
-  }
-
-  // Check if product is already in wishlist
-  const existingItem = wishlists[userId].find((item) => item === productId)
-
-  // Simulate API delay
-  setTimeout(() => {
-    if (!existingItem) {
-      // Add product to wishlist
-      wishlists[userId].push(productId)
+    if (!productId) {
+      return res.status(400).json({ message: "Product ID is required" })
     }
 
-    res.status(201).json(wishlists[userId])
-  }, 500)
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    // Initialize wishlist if it doesn't exist
+    if (!wishlists[userId]) {
+      wishlists[userId] = []
+    }
+
+    // Check if product already exists in wishlist
+    const existingItem = wishlists[userId].find((item) => item.productId === productId)
+
+    if (!existingItem) {
+      // Add new item to wishlist
+      wishlists[userId].push({
+        productId,
+        addedAt: new Date().toISOString(),
+      })
+    }
+
+    res.json(wishlists[userId])
+  } catch (error) {
+    console.error("Error adding to wishlist:", error)
+    res.status(500).json({ message: "Failed to add to wishlist" })
+  }
 }
 
 // Remove item from wishlist
-exports.removeFromWishlist = (req, res) => {
-  const userId = req.user.id
-  const { id } = req.params
+exports.removeFromWishlist = async (req, res) => {
+  try {
+    const userId = req.user.id
+    const { productId } = req.params
 
-  // Check if user has a wishlist
-  if (!wishlists[userId]) {
-    return res.status(404).json({ message: "Wishlist not found" })
-  }
-
-  // Find item in wishlist
-  const itemIndex = wishlists[userId].indexOf(id)
-
-  // Simulate API delay
-  setTimeout(() => {
-    if (itemIndex >= 0) {
-      // Remove item from wishlist
-      wishlists[userId].splice(itemIndex, 1)
-      res.json(wishlists[userId])
-    } else {
-      res.status(404).json({ message: "Item not found in wishlist" })
+    if (!productId) {
+      return res.status(400).json({ message: "Product ID is required" })
     }
-  }, 500)
+
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    // Check if wishlist exists
+    if (!wishlists[userId]) {
+      return res.status(404).json({ message: "Wishlist not found" })
+    }
+
+    // Remove item from wishlist
+    wishlists[userId] = wishlists[userId].filter((item) => item.productId !== productId)
+
+    res.json(wishlists[userId])
+  } catch (error) {
+    console.error("Error removing from wishlist:", error)
+    res.status(500).json({ message: "Failed to remove from wishlist" })
+  }
+}
+
+// Clear wishlist
+exports.clearWishlist = async (req, res) => {
+  try {
+    const userId = req.user.id
+
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 200))
+
+    // Clear wishlist
+    wishlists[userId] = []
+
+    res.json({ message: "Wishlist cleared successfully" })
+  } catch (error) {
+    console.error("Error clearing wishlist:", error)
+    res.status(500).json({ message: "Failed to clear wishlist" })
+  }
 }
 

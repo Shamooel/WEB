@@ -7,7 +7,9 @@ import Footer from "../components/layout/Footer"
 import { useAuth } from "../contexts/AuthContext"
 import { useTheme } from "../contexts/ThemeContext"
 import { useLanguage } from "../contexts/LanguageContext"
-import { useToast } from "../hooks/useToast"
+import { useToast } from "../contexts/ToastContext"
+import { fetchOrders } from "../services/api"
+import LoadingScreen from "../components/common/LoadingScreen"
 import "../styles/OrdersPage.css"
 
 function OrdersPage() {
@@ -15,7 +17,7 @@ function OrdersPage() {
   const { user } = useAuth()
   const { theme } = useTheme()
   const { t } = useLanguage()
-  const toast = useToast()
+  const { addToast } = useToast()
 
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -30,39 +32,28 @@ function OrdersPage() {
     }
 
     // Fetch orders from backend
-    const fetchOrders = async () => {
+    const getOrdersData = async () => {
       try {
         setLoading(true)
-
-        // Make API call to backend
-        const response = await fetch(`${process.env.REACT_APP_API_URL || ""}/api/orders`, {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        })
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch orders")
-        }
-
-        const data = await response.json()
+        const data = await fetchOrders()
         setOrders(data)
       } catch (err) {
         console.error("Error fetching orders:", err)
-        setError(err.message)
-        toast.error("Failed to load your orders. Please try again later.")
-
-        // Fallback to empty array if API fails
-        setOrders([])
+        setError("Failed to load your orders. Please try again later.")
+        addToast("Failed to load your orders. Please try again later.", "error")
       } finally {
         setLoading(false)
       }
     }
 
-    fetchOrders()
-  }, [user, navigate, toast])
+    getOrdersData()
+  }, [user, navigate, addToast])
 
   if (!user) return null
+
+  if (loading) {
+    return <LoadingScreen message="Loading your orders..." />
+  }
 
   return (
     <div className={`orders-page ${theme === "dark" ? "dark" : "light"}`}>
@@ -71,12 +62,7 @@ function OrdersPage() {
       <div className="orders-container">
         <h1 className="page-title">{t("myOrders")}</h1>
 
-        {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>Loading your orders...</p>
-          </div>
-        ) : error ? (
+        {error ? (
           <div className="error-container">
             <p>{error}</p>
             <button className="retry-button" onClick={() => window.location.reload()}>

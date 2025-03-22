@@ -1,177 +1,80 @@
-"use client"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
+import { ThemeProvider } from "./contexts/ThemeContext"
+import { LanguageProvider } from "./contexts/LanguageContext"
+import { AuthProvider } from "./contexts/AuthContext"
+import { ToastProvider } from "./contexts/ToastContext"
 
-import { Routes, Route, Navigate, useLocation } from "react-router-dom"
-import { Toaster } from "react-hot-toast"
-import { useAuth } from "./contexts/AuthContext"
-import { AnimatePresence, motion } from "framer-motion"
-
-// Import components
-import WelcomePage from "./pages/WelcomePage"
+// Layout components
+import Navbar from "./components/layout/Navbar"
+import Footer from "./components/layout/Footer"
 import HomePage from "./pages/HomePage"
 import ProductPage from "./pages/ProductPage"
-import LoginPage from "./pages/LoginPage"
+import CategoryPage from "./pages/CategoryPage"
 import CartPage from "./pages/CartPage"
 import WishlistPage from "./pages/WishlistPage"
-import ContactPage from "./pages/ContactPage"
-import OurStoryPage from "./pages/OurStoryPage"
-import CategoryPage from "./pages/CategoryPage"
-import NotFoundPage from "./pages/NotFoundPage"
-import AccountPage from "./pages/AccountPage"
+import LoginPage from "./pages/LoginPage"
+import SignupPage from "./pages/SignupPage"
+import ProfilePage from "./pages/ProfilePage"
 import OrdersPage from "./pages/OrdersPage"
-import LoadingScreen from "./components/common/LoadingScreen"
+import OrderDetailsPage from "./pages/OrderDetailsPage"
+import CheckoutPage from "./pages/CheckoutPage"
+import OurStoryPage from "./pages/OurStoryPage"
+import ContactPage from "./pages/ContactPage"
+import NotFoundPage from "./pages/NotFoundPage"
 
-// Protected route component
-const ProtectedRoute = ({ children }) => {
-  const { user, isLoading } = useAuth()
+import "./App.css"
+import WelcomeScene from './components/3d/WelcomeScene';
 
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return <LoadingScreen message="Checking authentication..." />
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />
-  }
-
-  return children
-}
-
-// Page transition variants
-const pageVariants = {
-  initial: {
-    opacity: 0,
-    scale: 0.98,
-  },
-  in: {
-    opacity: 1,
-    scale: 1,
-  },
-  out: {
-    opacity: 0,
-    scale: 1.02,
-  },
-}
-
-const pageTransition = {
-  type: "tween",
-  ease: "anticipate",
-  duration: 0.5,
-}
 
 function App() {
-  const location = useLocation()
+  return (
+    <Router>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <ToastProvider>
+              <div className="app">
+                <Routes>
+                  {/* Welcome page doesn't need navbar/footer */}
+                  <Route path="/" element={<WelcomeScene />} />
 
+                  {/* Routes with layout */}
+                  <Route path="/*" element={<LayoutWithRoutes />} />
+                </Routes>
+              </div>
+            </ToastProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </Router>
+  )
+}
+
+// Component for routes that need the layout (navbar/footer)
+function LayoutWithRoutes() {
   return (
     <>
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route
-            path="/"
-            element={
-              <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-                <WelcomePage />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/home"
-            element={
-              <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-                <HomePage />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/product/:id"
-            element={
-              <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-                <ProductPage />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-                <LoginPage />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/contact"
-            element={
-              <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-                <ContactPage />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/our-story"
-            element={
-              <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-                <OurStoryPage />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/category/:id"
-            element={
-              <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-                <CategoryPage />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/cart"
-            element={
-              <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-                <ProtectedRoute>
-                  <CartPage />
-                </ProtectedRoute>
-              </motion.div>
-            }
-          />
-          <Route
-            path="/wishlist"
-            element={
-              <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-                <ProtectedRoute>
-                  <WishlistPage />
-                </ProtectedRoute>
-              </motion.div>
-            }
-          />
-          <Route
-            path="/account"
-            element={
-              <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-                <ProtectedRoute>
-                  <AccountPage />
-                </ProtectedRoute>
-              </motion.div>
-            }
-          />
-          <Route
-            path="/orders"
-            element={
-              <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-                <ProtectedRoute>
-                  <OrdersPage />
-                </ProtectedRoute>
-              </motion.div>
-            }
-          />
-          <Route
-            path="*"
-            element={
-              <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
-                <NotFoundPage />
-              </motion.div>
-            }
-          />
+      <Navbar />
+      <main className="main-content">
+        <Routes>
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/products/:id" element={<ProductPage />} />
+          <Route path="/categories" element={<CategoryPage />} />
+          <Route path="/categories/:id" element={<CategoryPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/:id" element={<OrderDetailsPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/our-story" element={<OurStoryPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
-      </AnimatePresence>
-      <Toaster position="top-right" />
+      </main>
+      <Footer />
     </>
   )
 }

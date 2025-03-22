@@ -1,100 +1,105 @@
 "use client"
 import { Link } from "react-router-dom"
+import { FaFacebook, FaTwitter, FaInstagram, FaYoutube } from "react-icons/fa"
+import { useLanguage } from "../../contexts/LanguageContext"
 import { useTheme } from "../../contexts/ThemeContext"
 import "../../styles/Footer.css"
 
-function Footer() {
+const Footer = () => {
+  const { t } = useLanguage()
   const { theme } = useTheme()
 
   return (
-    <footer className={`footer ${theme === "dark" ? "dark" : "light"}`}>
+    <footer className={`footer ${theme === "dark" ? "footer-dark" : "footer-light"}`}>
       <div className="footer-container">
-        <div className="footer-grid">
-          {/* About */}
-          <div className="footer-section">
-            <h3 className="footer-title">Elegance</h3>
-            <p className="footer-text">
-              Discover the perfect blend of tradition and modernity with our premium Pakistani fashion collection.
+        <div className="footer-top">
+          <div className="footer-column">
+            <h3 className="footer-title">Pakistani Fashion</h3>
+            <p className="footer-description">
+              Premium Pakistani fashion for the modern world, where tradition meets elegance.
             </p>
-            <div className="social-links">
-              <button className="social-button">
-                <i className="icon-facebook"></i>
-              </button>
-              <button className="social-button">
-                <i className="icon-instagram"></i>
-              </button>
-              <button className="social-button">
-                <i className="icon-twitter"></i>
-              </button>
-            </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="footer-section">
-            <h3 className="footer-title">Quick Links</h3>
+          <div className="footer-column">
+            <h3 className="footer-title">{t("quickLinks") || "Quick Links"}</h3>
             <ul className="footer-links">
               <li>
-                <Link to="/home" className="footer-link">
-                  Home
-                </Link>
+                <Link to="/home">{t("home") || "Home"}</Link>
               </li>
               <li>
-                <Link to="/collections" className="footer-link">
-                  Collections
-                </Link>
+                <Link to="/categories">{t("categories") || "Categories"}</Link>
               </li>
               <li>
-                <Link to="/new-arrivals" className="footer-link">
-                  New Arrivals
-                </Link>
+                <Link to="/our-story">{t("ourStory") || "Our Story"}</Link>
               </li>
               <li>
-                <Link to="/about" className="footer-link">
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className="footer-link">
-                  Contact
-                </Link>
+                <Link to="/contact">{t("contactUs") || "Contact Us"}</Link>
               </li>
             </ul>
           </div>
 
-          {/* Contact */}
-          <div className="footer-section">
-            <h3 className="footer-title">Contact Us</h3>
-            <ul className="contact-info">
-              <li className="contact-item">
-                <i className="icon-map-pin"></i>
-                <span>123 Fashion Street, Lahore, Pakistan</span>
+          <div className="footer-column">
+            <h3 className="footer-title">{t("customerService") || "Customer Service"}</h3>
+            <ul className="footer-links">
+              <li>
+                <Link to="/shipping-policy">{t("shippingPolicy") || "Shipping Policy"}</Link>
               </li>
-              <li className="contact-item">
-                <i className="icon-phone"></i>
-                <span>+92 123 456 7890</span>
+              <li>
+                <Link to="/return-policy">{t("returnPolicy") || "Return Policy"}</Link>
               </li>
-              <li className="contact-item">
-                <i className="icon-mail"></i>
-                <span>info@elegance.com</span>
+              <li>
+                <Link to="/privacy-policy">{t("privacyPolicy") || "Privacy Policy"}</Link>
+              </li>
+              <li>
+                <Link to="/terms-conditions">{t("termsConditions") || "Terms & Conditions"}</Link>
+              </li>
+              <li>
+                <Link to="/faq">{t("faq") || "FAQ"}</Link>
               </li>
             </ul>
           </div>
 
-          {/* Newsletter */}
-          <div className="footer-section">
-            <h3 className="footer-title">Newsletter</h3>
-            <p className="footer-text">Subscribe to receive updates on our latest collections and exclusive offers.</p>
+          <div className="footer-column">
+            <h3 className="footer-title">{t("stayConnected") || "Stay Connected"}</h3>
+            <div className="social-icons">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <FaFacebook />
+              </a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
+                <FaTwitter />
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <FaInstagram />
+              </a>
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                <FaYoutube />
+              </a>
+            </div>
+
+            <h3 className="footer-title newsletter-title">{t("newsletter") || "Newsletter"}</h3>
+            <p>{t("subscribeToNewsletter") || "Subscribe to our newsletter for updates"}</p>
             <form className="newsletter-form">
-              <input type="email" placeholder="Your email address" className="newsletter-input" />
-              <button type="submit" className="newsletter-button">
-                Subscribe
-              </button>
+              <input
+                type="email"
+                placeholder={t("emailAddress") || "Email Address"}
+                required
+                aria-label="Email Address"
+              />
+              <button type="submit">{t("subscribe") || "Subscribe"}</button>
             </form>
           </div>
         </div>
 
         <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} Elegance. All rights reserved.</p>
+          <p className="copyright">
+            &copy; {new Date().getFullYear()} Pakistani Fashion. {t("allRightsReserved") || "All rights reserved."}
+          </p>
+          <div className="payment-methods">
+            <img src="/placeholder.svg?height=30&width=50" alt="Visa" />
+            <img src="/placeholder.svg?height=30&width=50" alt="Mastercard" />
+            <img src="/placeholder.svg?height=30&width=50" alt="PayPal" />
+            <img src="/placeholder.svg?height=30&width=50" alt="Apple Pay" />
+          </div>
         </div>
       </div>
     </footer>

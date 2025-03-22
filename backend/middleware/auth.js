@@ -1,29 +1,29 @@
-// JWT Secret (in a real app, this would be in environment variables)
-const JWT_SECRET = "khumaymi_fashion_secret_key_2023"
-
-// Authentication middleware
+// Authenticate token middleware
 exports.authenticateToken = (req, res, next) => {
-  // Get the authorization header
   const authHeader = req.headers["authorization"]
-  const token = authHeader && authHeader.split(" ")[1] // Bearer TOKEN
+  const token = authHeader && authHeader.split(" ")[1]
 
   if (!token) {
-    return res.status(401).json({ message: "Authentication token is required" })
+    return res.status(401).json({ message: "Authentication required" })
   }
 
-  // In a real app, verify the JWT token
-  // For this demo, we'll just check if it starts with 'demo-token-'
-  if (token.startsWith("demo-token-")) {
-    // In a real app, decode the JWT to get the user ID
-    // For this demo, we'll just use a dummy user
+  try {
+    // In a real app, verify JWT token
+    // For demo, we'll just check if it starts with "demo-token-"
+    if (!token.startsWith("demo-token-")) {
+      return res.status(403).json({ message: "Invalid token" })
+    }
+
+    // Attach a mock user to the request
     req.user = {
       id: "1",
       name: "Demo User",
       email: "user@example.com",
     }
+
     next()
-  } else {
-    res.status(403).json({ message: "Invalid or expired token" })
+  } catch (error) {
+    return res.status(403).json({ message: "Invalid token" })
   }
 }
 
