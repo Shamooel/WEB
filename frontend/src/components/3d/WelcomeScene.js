@@ -101,7 +101,7 @@ const WaterSurface = () => {
 
 // Background image component
 const BackgroundImage = () => {
-  const texture = useTexture("/images/desert-background.png")
+  const texture = useTexture("/images/desert.webp");
   const { viewport } = useThree()
 
   return (
